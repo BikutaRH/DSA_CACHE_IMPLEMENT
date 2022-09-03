@@ -1,0 +1,121 @@
+M 5
+T 1
+R 0 12
+R 1 24
+R 0 12
+W 0 25
+R 2 24
+R 3 15
+W 3 20
+R 4 20
+R 3 15
+W 5 40
+W 6 42
+W 7 30
+W 8 12
+W 9 22
+R 10 44
+R 11 24
+W 10 30
+W 12 23
+W 14 25
+W 15 26
+W 13 22
+R 0 10
+W 16 2
+P
+E
+H
+
+
+class MFU : public ReplacementPolicy {
+    void swap(Node**& maxHeap, int child, int parent){
+        Node* temp = maxHeap[child];
+        maxHeap[child] = maxHeap[parent];
+        maxHeap[parent] = temp;
+    }
+
+    void reheapUp(Node**& maxHeap, int pos){   
+        if (pos > 0) {
+            int parent = (pos-1)/2;
+            if (maxHeap[pos]->counter > maxHeap[parent]->counter) {
+                swap(maxHeap, pos, parent);
+                reheapUp(maxHeap, parent);
+            }
+        } else return;
+    }
+
+    void reheapDown(Node**& maxHeap, int pos){   
+        int leftChild = pos*2 + 1;
+        int rightChild = pos*2 + 2;
+        int maxChild;
+        if (leftChild <= curSizeBuffer - 1) {
+            if (rightChild <= curSizeBuffer - 1 && maxHeap[rightChild]->counter >= maxHeap[leftChild]->counter)
+                maxChild = rightChild;
+            else maxChild = leftChild;
+            if (maxHeap[maxChild]->counter >= maxHeap[pos]->counter) {
+                swap(maxHeap, maxChild, pos);
+                reheapDown(maxHeap, maxChild);
+            }
+        }
+    }
+
+    void remove(Node**& maxHeap, int pos){
+
+        if(curSizeBuffer == 1){
+            delete maxHeap[0];
+            maxHeap[0] = NULL;
+            curSizeBuffer--;
+            return;
+        }else if(pos == curSizeBuffer - 1){
+            delete maxHeap[pos];
+            maxHeap[pos] = NULL;
+            curSizeBuffer--;
+            return;
+        }else{
+            Node* temp = maxHeap[pos];
+            maxHeap[pos] = maxHeap[curSizeBuffer - 1];
+            delete temp;
+            maxHeap[curSizeBuffer - 1] = NULL;
+            curSizeBuffer--;
+            if(maxHeap[pos]->counter > maxHeap[(pos-1)/2]->counter) reheapUp(maxHeap, pos);
+            else reheapDown(maxHeap, pos);
+        }
+        
+    }
+
+    void insert(Node**& maxHeap, int index, int counter){
+        Node* newNode =  new Node(index, counter);
+        maxHeap[curSizeBuffer] = newNode;
+        curSizeBuffer++;
+        reheapUp(maxHeap, curSizeBuffer - 1);    
+    }
+
+    void update(Node**& maxHeap, int index){
+        // cout << "update: ";
+        int temp = 0;
+        int posInHeap = 0;
+        for(int i = 0; i < curSizeBuffer; i++){
+            // cout << maxHeap[i]->indexOfElem << " " << maxHeap[i]->counter << endl;
+            if (maxHeap[i]->indexOfElem == index){
+                temp = maxHeap[i]->counter;
+                posInHeap = i; 
+                // cout << temp << " " << i << endl;
+                break;
+            }  
+        }
+        remove(maxHeap, posInHeap);
+        insert(maxHeap, index, temp + 1);
+    }
+
+    void putBuffer(Node**& maxHeap, int index, int counter){
+        remove(maxHeap, 0);
+        insert(maxHeap, index, counter);
+    }
+
+    void printRPlace(Elem**& arr){
+        for(int i = curSizeBuffer - 1 ; i >=0 ; i--){
+            cout << arr[buffer[i]->indexOfElem]->addr << " " << arr[buffer[i]->indexOfElem]->data->getValue() << " " << (arr[buffer[i]->indexOfElem]->sync?"true":"false") << endl;
+        }
+    }
+};
