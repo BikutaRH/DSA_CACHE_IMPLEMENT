@@ -4,10 +4,7 @@
 #include "main.h"
 
 class SearchEngine {
-public:
-    Elem** cache = new Elem*[MAXSIZE]; // cache prime
-    Elem** hashTable = new Elem*[MAXSIZE]; // hash
-    int size = 0; // size of cache
+
 public:
     class Node; // forward declare
     Node* root;
@@ -102,9 +99,8 @@ public:
     int hashFunction(int key){
         return key % MAXSIZE;
     }
-    void insertHash(Elem* element){
+    void insertHash(Elem* element, Elem**& hashTable){
         int index = hashFunction(element->addr);
-        // cout << index << " ";
         if (hashTable[index] == NULL){
             hashTable[index] = element;
             // cout << "value: " << hashTable[index]->addr << endl;
@@ -138,28 +134,22 @@ public:
         }
         ~Node(){};
 };    
-    virtual void setRoot(){};     
+    // virtual void setRoot(){};     
     SearchEngine(){
-        for(int i = 0; i < MAXSIZE; i++){
-            cout << "ham tao seachr" << endl;
-            cache[i] = NULL;
-        }
+        root = NULL;
     }
     ~SearchEngine(){
         root = makeEmpty(root);
-        for(int i = 0; i < size; i++){
-            cout << "ham huy seachr" << endl;
-            delete cache[i];
-        } 
-        delete[] cache;
-        delete[] hashTable;
     }
 };
 
 class ReplacementPolicy {
 public:
+    Elem** cache; // cache prime
+    int size; // size of cache
+public:
     class Node;
-    Node** buffer = new Node*[MAXSIZE];
+    Node** buffer;
     int curSizeBuffer;
 
 public:
@@ -167,7 +157,6 @@ public:
     void virtual swap(Node**&, int, int){};
     void virtual sortUp(Node**& list, int pos){};
     void virtual sortDown(Node**& list, int pos){}
-    void virtual bubbleSort(Node**&, int pos){};
     void virtual reheapUp(Node**&, int pos){};
     void virtual reheapDown(Node**&, int pos){};
     void virtual update(Node**&, int pos){};
@@ -186,6 +175,27 @@ public:
         }
         ~Node(){};
     };
+    
+    ReplacementPolicy(){
+        cache = new Elem*[MAXSIZE];
+        buffer = new Node*[MAXSIZE];
+        size = curSizeBuffer = 0;
+        for(int i = 0; i < MAXSIZE; i++){
+            // cout << "ham tao replace" << endl;
+            cache[i] = NULL;
+            buffer[i] = NULL;
+        }
+    }
+
+    ~ReplacementPolicy(){
+        for(int i = 0; i < MAXSIZE; i++){
+            // cout << "ham huy replace" << endl;
+            delete cache[i];
+            delete buffer[i];
+        } 
+        delete[] cache;
+        delete[] buffer;
+    }
 };
 
 class MFU : public ReplacementPolicy {
@@ -252,15 +262,12 @@ class MFU : public ReplacementPolicy {
     }
 
     void update(Node**& maxHeap, int index){
-        // cout << "update: ";
         int temp = 0;
         int posInHeap = 0;
         for(int i = 0; i < curSizeBuffer; i++){
-            // cout << maxHeap[i]->indexOfElem << " " << maxHeap[i]->counter << endl;
             if (maxHeap[i]->indexOfElem == index){
                 temp = maxHeap[i]->counter;
                 posInHeap = i; 
-                // cout << temp << " " << i << endl;
                 break;
             }  
         }
@@ -344,15 +351,12 @@ class LFU : public ReplacementPolicy {
     }
 
     void update(Node**& minHeap, int index){
-        // cout << "update: ";
         int temp = 0;
         int posInHeap = 0;
         for(int i = 0; i < curSizeBuffer; i++){
-            // cout << minHeap[i]->indexOfElem << " " << minHeap[i]->counter << endl;
             if (minHeap[i]->indexOfElem == index){
                 temp = minHeap[i]->counter;
                 posInHeap = i; 
-                // cout << temp << " " << i << endl;
                 break;
             }  
         }
@@ -476,7 +480,6 @@ class LFRU: public ReplacementPolicy {
     }
 
     void putBuffer(Node**& list, int index, int counter){
-        // cout << " truong hop 4 " << endl;
         list[0]->indexOfElem = index;
         list[0]->counter = 0;
         sortDown(list, 0);
@@ -490,9 +493,5 @@ class LFRU: public ReplacementPolicy {
 };
 
 class BST : public SearchEngine {
-public:
-    void setRoot(){
-        root = NULL;
-    }
 };
 #endif

@@ -87,6 +87,10 @@ void simulate(string filename)
 int main(int argc, char* argv[]) {
     string fileName = "test1.txt";
     simulate(fileName);
+	cout << " done1";
+	fileName = "test2.txt";
+	simulate(fileName);
+	cout << " done2";
 	return 0;
 }
 

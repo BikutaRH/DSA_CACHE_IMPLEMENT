@@ -2,11 +2,12 @@
 using namespace std;
 
 class A{
+public:
     int a = 5;
     int b = 6;
 public:
     A() {
-        cout << "1" << endl;
+        cout << a << endl;
     }
     ~A() {
         cout << "destroy 1";
@@ -25,6 +26,7 @@ public:
 };
 int main(){
     A* newA = new B();
+    cout << newA->a;
     delete newA;
     return 0;
 }
